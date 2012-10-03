@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cronentries>
+  <cron>
+    <url>/dailyreport</url>
+    <description>Mail out a daily menu</description>
+    <schedule>every 1 minutes</schedule>
+    <timezone>Europe/Paris</timezone>
+  </cron>
+</cronentries>
