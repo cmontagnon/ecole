@@ -14,8 +14,12 @@ public class AddMenuServlet extends HttpServlet {
   @Override
   public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     String day = req.getParameter("day");
-    String menu = req.getParameter("menu");
-    DayMenu greeting = new DayMenu(day, menu);
+    String menuEntry = req.getParameter("menuEntry");
+    String menuMainDish = req.getParameter("menuMainDish");
+    String menuVegetables = req.getParameter("menuVegetables");
+    String menuCheese = req.getParameter("menuCheese");
+    String menuDessert = req.getParameter("menuDessert");
+    DayMenu greeting = new DayMenu(day, menuEntry, menuMainDish, menuVegetables, menuCheese, menuDessert);
 
     PersistenceManager pm = PMF.get().getPersistenceManager();
     try {

@@ -45,7 +45,22 @@ public class CurrentMenuMailSender extends HttpServlet {
     String msgBody = "No menu found";
     for (DayMenu dayMenu : dayMenus) {
       if (dayMenu.getDay().equals(currentDay)) {
-        msgBody = dayMenu.getMenu();
+        msgBody += "<html>";
+        msgBody += "<body>";
+        msgBody += "<table border=\"1px solid #DFDFDF\">";
+        msgBody += "<thead>";
+        msgBody += "<th>Day</th><th>Entry</th><th>Main dish</th><th>Vegetables</th><th>Cheese</th><th>Dessert</th>";
+        msgBody += "</thead>";
+        msgBody += "<tbody>";
+        msgBody += "<tr>" + dayMenu.getMenuEntry() + "</tr>";
+        msgBody += "<tr>" + dayMenu.getMenuMainDish() + "</tr>";
+        msgBody += "<tr>" + dayMenu.getMenuVegetables() + "</tr>";
+        msgBody += "<tr>" + dayMenu.getMenuCheese() + "</tr>";
+        msgBody += "<tr>" + dayMenu.getMenuDessert() + "</tr>";
+        msgBody += "</tbody>";
+        msgBody += "</table>";
+        msgBody += "</body>";
+        msgBody += "</html>";
       }
     }
     pm.close();
