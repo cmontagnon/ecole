@@ -30,21 +30,45 @@ to include your name with greetings you post.</p>
     }
 %>
 
+<table id="table-3">
+	<thead>
+		<th>Day</th>
+		<th>Entry</th>
+		<th>Main dish</th>
+		<th>Vegetables</th>
+		<th>Cheese</th>
+		<th>Dessert</th>
+	</thead>
+	<tbody>
 <%
     PersistenceManager pm = PMF.get().getPersistenceManager();
     String query = "select from " + DayMenu.class.getName();
     List<DayMenu> dayMenus = (List<DayMenu>) pm.newQuery(query).execute();
     for (DayMenu dayMenu : dayMenus) {
 %>
-<blockquote><%= dayMenu.getDay() + ":" + dayMenu.getMenu() %></blockquote>
+<tr>
+<td><%= dayMenu.getDay()%></td>
+<td><%= dayMenu.getMenuEntry()%></td>
+<td><%= dayMenu.getMenuMainDish()%></td>
+<td><%= dayMenu.getMenuVegetables()%></td>
+<td><%= dayMenu.getMenuCheese()%></td>
+<td><%= dayMenu.getMenuDessert()%></td>
+</tr>
 <%
+	
     }
     pm.close();
 %>
+	</tbody>
+</table>
 
     <form action="/addMenu" method="post">
-      <div>Day :<br><textarea name="day" rows="3" cols="60"></textarea></div>
-      <div>Menu :<br><textarea name="menu" rows="3" cols="60"></textarea></div>
+      <div>Day :<input name="day" /></div>
+      <div>Menu entry :<input name="menuEntry" /></div>
+      <div>Menu main dish :<input name="menuMainDish" /></div>
+      <div>Menu vegetables :<input name="menuVegetables" /></div>
+      <div>Menu cheese :<input name="menuCheese" /></div>
+      <div>Menu dessert :<input name="menuDessert" /></div>
       <div><input type="submit" value="Post Menu" /></div>
     </form>
 
