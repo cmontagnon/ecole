@@ -1,6 +1,12 @@
 package perso.ecole.report;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
@@ -8,6 +14,8 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
 import javax.jdo.PersistenceManager;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -22,9 +30,13 @@ import javax.servlet.http.HttpServletResponse;
 import perso.ecole.DayMenu;
 import perso.ecole.PMF;
 
+import com.google.api.server.spi.IoUtil;
+
 public class CurrentMenuMailSender extends HttpServlet {
 
+  private static final String MAIL_TITLE = "Damien : menu du jour";
   private static final Logger log = Logger.getLogger(CurrentMenuMailSender.class.getName());
+  private List<String> addressees = Arrays.asList("cyrilmontagnon@gmail.com", "cyril.montagnon@natixis.com");
 
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -41,42 +53,110 @@ public class CurrentMenuMailSender extends HttpServlet {
     List<DayMenu> dayMenus = (List<DayMenu>) pm.newQuery(query).execute();
     Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Paris"));
     String currentDay =
-        cal.get(Calendar.YEAR) + "-" + (cal.get(Calendar.MONTH) + 1) + "-" + cal.get(Calendar.DAY_OF_MONTH);
+        cal.get(Calendar.YEAR) + "-" + padWithZeroIfNecessary(cal.get(Calendar.MONTH) + 1) + "-"
+            + padWithZeroIfNecessary(cal.get(Calendar.DAY_OF_MONTH));
+
+    log.log(Level.INFO, "Trying to find a menu with day : " + currentDay);
+
     String msgBody = "No menu found";
     for (DayMenu dayMenu : dayMenus) {
+      log.log(Level.INFO, "current menu day : " + dayMenu.getDay());
       if (dayMenu.getDay().equals(currentDay)) {
-        msgBody += "<html>";
-        msgBody += "<body>";
-        msgBody += "<table border=\"1px solid #DFDFDF\">";
-        msgBody += "<thead>";
-        msgBody += "<th>Day</th><th>Entry</th><th>Main dish</th><th>Vegetables</th><th>Cheese</th><th>Dessert</th>";
-        msgBody += "</thead>";
-        msgBody += "<tbody>";
-        msgBody += "<tr>" + dayMenu.getMenuEntry() + "</tr>";
-        msgBody += "<tr>" + dayMenu.getMenuMainDish() + "</tr>";
-        msgBody += "<tr>" + dayMenu.getMenuVegetables() + "</tr>";
-        msgBody += "<tr>" + dayMenu.getMenuCheese() + "</tr>";
-        msgBody += "<tr>" + dayMenu.getMenuDessert() + "</tr>";
-        msgBody += "</tbody>";
-        msgBody += "</table>";
-        msgBody += "</body>";
-        msgBody += "</html>";
+        log.log(Level.INFO, "Found menu of the day : " + dayMenu.getDay());
+        msgBody = generateHTMLMail(msgBody, dayMenu);
       }
     }
     pm.close();
 
     try {
-      log.log(Level.INFO, "Trying to send mail to ...");
-      Message msg = new MimeMessage(session);
-      msg.setFrom(new InternetAddress("cyrilmontagnon@gmail.com"));
-      msg.addRecipient(Message.RecipientType.TO, new InternetAddress("cyril.montagnon@natixis.com"));
-      msg.setSubject("Damien : menu du jour");
-      msg.setText(msgBody);
-      Transport.send(msg);
+      log.log(Level.INFO, "Trying to send mail to :" + addressees);
+
+      Message message = new MimeMessage(session);
+      message.setFrom(new InternetAddress("cyrilmontagnon@gmail.com"));
+
+      InternetAddress[] addressesTo = new InternetAddress[addressees.size()];
+      for (int i = 0; i < addressees.size(); i++) {
+        addressesTo[i] = new InternetAddress(addressees.get(i));
+      }
+      message.setRecipients(Message.RecipientType.TO, addressesTo);
+      message.setSubject(MAIL_TITLE);
+
+      message.setDataHandler(new DataHandler(new HTMLDataSource(msgBody)));
+      message.setHeader("MIME-Version", "1.0");
+      message.setHeader("X-Mailer", "My own custom mailer");
+
+      message.saveChanges();
+      Transport.send(message);
     } catch (MessagingException e) {
       log.log(Level.WARNING, e.getMessage());
       e.printStackTrace();
     }
+  }
 
+  /*
+   * Inner class to act as a JAF datasource to send HTML e-mail content
+   */
+  static class HTMLDataSource implements DataSource {
+    private String html;
+
+    public HTMLDataSource(String htmlString) {
+      html = htmlString;
+    }
+
+    // Return html string in an InputStream.
+    // A new stream must be returned each time.
+    public InputStream getInputStream() throws IOException {
+      if (html == null)
+        throw new IOException("Null HTML");
+      return new ByteArrayInputStream(html.getBytes());
+    }
+
+    public OutputStream getOutputStream() throws IOException {
+      throw new IOException("This DataHandler cannot write HTML");
+    }
+
+    public String getContentType() {
+      return "text/html";
+    }
+
+    public String getName() {
+      return "JAF text/html dataSource to send e-mail only";
+    }
+  }
+
+  // TODO : pad with zero method??
+  private static String padWithZeroIfNecessary(int monthOrDay) {
+    if (monthOrDay < 10) {
+      return "0" + monthOrDay;
+    } else {
+      return String.valueOf(monthOrDay);
+    }
+  }
+
+  private static String generateHTMLMail(String msgBody, DayMenu dayMenu) throws FileNotFoundException, IOException {
+    msgBody = "<html>";
+    msgBody += "<head>";
+    msgBody += "<style type=\"text/css\">";
+    msgBody += IoUtil.readFile(new File("stylesheets/main.css"));
+    msgBody += "</style>";
+    msgBody += "</head>";
+    msgBody += "<body>";
+    msgBody += "<table id=\"table-3\">";
+    msgBody += "<tbody>";
+    msgBody += "<tr><td><b>Entr&eacute;e</b></td><td>" + dayMenu.getMenuEntry() + "</td></tr>";
+    msgBody += "<tr><td><b>Repas</b></td><td>" + dayMenu.getMenuMainDish() + "</td></tr>";
+    msgBody += "<tr><td><b>Accompagnement</b></td><td>" + dayMenu.getMenuVegetables() + "</td></tr>";
+    msgBody += "<tr><td><b>Produit laitier</b></td><td>" + dayMenu.getMenuCheese() + "</td></tr>";
+    msgBody += "<tr><td><b>Dessert</b></td><td>" + dayMenu.getMenuDessert() + "</td></tr>";
+    msgBody += "</tbody>";
+    msgBody += "</table>";
+    msgBody += "</body>";
+    msgBody += "</html>";
+    return msgBody;
+  }
+
+  public static void main(String[] args) throws FileNotFoundException, IOException {
+    System.out.println(generateHTMLMail("", new DayMenu("2012-10-04", "tomate", "poulet", "frites", "gouda",
+        "babaorhum")));
   }
 }

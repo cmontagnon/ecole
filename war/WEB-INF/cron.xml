@@ -3,7 +3,7 @@
   <cron>
     <url>/dailyreport</url>
     <description>Mail out a daily menu</description>
-    <schedule>every day 01:00</schedule>
+    <schedule>every 10 minutes</schedule>
     <timezone>Europe/Paris</timezone>
   </cron>
 </cronentries>
