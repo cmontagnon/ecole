@@ -34,9 +34,10 @@ import com.google.api.server.spi.IoUtil;
 
 public class CurrentMenuMailSender extends HttpServlet {
 
+  private static final long serialVersionUID = 1L;
   private static final String MAIL_TITLE = "Damien : menu du jour";
   private static final Logger log = Logger.getLogger(CurrentMenuMailSender.class.getName());
-  private List<String> addressees = Arrays.asList("cyrilmontagnon@gmail.com", "cyril.montagnon@natixis.com");
+  private List<String> addressees = Arrays.asList("cyrilmontagnon@gmail.com");//, "audewoehl@gmail.com");
 
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -58,7 +59,7 @@ public class CurrentMenuMailSender extends HttpServlet {
 
     log.log(Level.INFO, "Trying to find a menu with day : " + currentDay);
 
-    String msgBody = "No menu found";
+    String msgBody = null;
     for (DayMenu dayMenu : dayMenus) {
       log.log(Level.INFO, "current menu day : " + dayMenu.getDay());
       if (dayMenu.getDay().equals(currentDay)) {
@@ -68,28 +69,30 @@ public class CurrentMenuMailSender extends HttpServlet {
     }
     pm.close();
 
-    try {
-      log.log(Level.INFO, "Trying to send mail to :" + addressees);
+    if (msgBody != null) {
+      try {
+        log.log(Level.INFO, "Trying to send mail to :" + addressees);
 
-      Message message = new MimeMessage(session);
-      message.setFrom(new InternetAddress("cyrilmontagnon@gmail.com"));
+        Message message = new MimeMessage(session);
+        message.setFrom(new InternetAddress("cyrilmontagnon@gmail.com"));
 
-      InternetAddress[] addressesTo = new InternetAddress[addressees.size()];
-      for (int i = 0; i < addressees.size(); i++) {
-        addressesTo[i] = new InternetAddress(addressees.get(i));
+        InternetAddress[] addressesTo = new InternetAddress[addressees.size()];
+        for (int i = 0; i < addressees.size(); i++) {
+          addressesTo[i] = new InternetAddress(addressees.get(i));
+        }
+        message.setRecipients(Message.RecipientType.TO, addressesTo);
+        message.setSubject(MAIL_TITLE);
+
+        message.setDataHandler(new DataHandler(new HTMLDataSource(msgBody)));
+        message.setHeader("MIME-Version", "1.0");
+        message.setHeader("X-Mailer", "My own custom mailer");
+
+        message.saveChanges();
+        Transport.send(message);
+      } catch (MessagingException e) {
+        log.log(Level.WARNING, e.getMessage());
+        e.printStackTrace();
       }
-      message.setRecipients(Message.RecipientType.TO, addressesTo);
-      message.setSubject(MAIL_TITLE);
-
-      message.setDataHandler(new DataHandler(new HTMLDataSource(msgBody)));
-      message.setHeader("MIME-Version", "1.0");
-      message.setHeader("X-Mailer", "My own custom mailer");
-
-      message.saveChanges();
-      Transport.send(message);
-    } catch (MessagingException e) {
-      log.log(Level.WARNING, e.getMessage());
-      e.printStackTrace();
     }
   }
 
@@ -146,7 +149,7 @@ public class CurrentMenuMailSender extends HttpServlet {
     msgBody += "<tr><td><b>Entr&eacute;e</b></td><td>" + dayMenu.getMenuEntry() + "</td></tr>";
     msgBody += "<tr><td><b>Repas</b></td><td>" + dayMenu.getMenuMainDish() + "</td></tr>";
     msgBody += "<tr><td><b>Accompagnement</b></td><td>" + dayMenu.getMenuVegetables() + "</td></tr>";
-    msgBody += "<tr><td><b>Produit laitier</b></td><td>" + dayMenu.getMenuCheese() + "</td></tr>";
+    msgBody += "<tr><td><b>Fromage/Yaourt</b></td><td>" + dayMenu.getMenuCheese() + "</td></tr>";
     msgBody += "<tr><td><b>Dessert</b></td><td>" + dayMenu.getMenuDessert() + "</td></tr>";
     msgBody += "</tbody>";
     msgBody += "</table>";

@@ -13,36 +13,19 @@
   </head>
   <body>
 
-<%
-    UserService userService = UserServiceFactory.getUserService();
-    User user = userService.getCurrentUser();
-    if (user != null) {
-%>
-<p>Hello, <%= user.getNickname() %>! (You can
-<a href="<%= userService.createLogoutURL(request.getRequestURI()) %>">sign out</a>.)</p>
-<%
-    } else {
-%>
-<p>Hello!
-<a href="<%= userService.createLoginURL(request.getRequestURI()) %>">Sign in</a>
-to include your name with greetings you post.</p>
-<%
-    }
-%>
-
 <table id="table-3">
 	<thead>
-		<th>Day</th>
-		<th>Entry</th>
-		<th>Main dish</th>
-		<th>Vegetables</th>
-		<th>Cheese</th>
-		<th>Dessert</th>
+		<th><b>Jour</b></th>
+		<th><b>Entr&eacute;e</b></th>
+		<th><b>Repas</b></th>
+		<th><b>Accompagnement</b></th>
+		<th><b>Fromage/Yaourt</b></th>
+		<th><b>Dessert</b></th>
 	</thead>
 	<tbody>
 <%
     PersistenceManager pm = PMF.get().getPersistenceManager();
-    String query = "select from " + DayMenu.class.getName();
+    String query = "select from " + DayMenu.class.getName() + " order by day";
     List<DayMenu> dayMenus = (List<DayMenu>) pm.newQuery(query).execute();
     for (DayMenu dayMenu : dayMenus) {
 %>
@@ -61,16 +44,5 @@ to include your name with greetings you post.</p>
 %>
 	</tbody>
 </table>
-
-    <form action="/addMenu" method="post">
-      <div>Day :<input name="day" /></div>
-      <div>Menu entry :<input name="menuEntry" /></div>
-      <div>Menu main dish :<input name="menuMainDish" /></div>
-      <div>Menu vegetables :<input name="menuVegetables" /></div>
-      <div>Menu cheese :<input name="menuCheese" /></div>
-      <div>Menu dessert :<input name="menuDessert" /></div>
-      <div><input type="submit" value="Post Menu" /></div>
-    </form>
-
   </body>
 </html>
