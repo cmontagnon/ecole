@@ -36,3 +36,11 @@ body {
 	padding: 4px 7px 2px;
 	vertical-align: top;
 }
+
+#table-3 tr:hover{
+	background-color:#DFDF00;
+}
+
+.current-day {
+	background-color:#DFDF00;
+}

@@ -7,10 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
-import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,6 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import perso.ecole.DayMenu;
+import perso.ecole.DayUtil;
 import perso.ecole.PMF;
 
 import com.google.api.server.spi.IoUtil;
@@ -37,7 +36,8 @@ public class CurrentMenuMailSender extends HttpServlet {
   private static final long serialVersionUID = 1L;
   private static final String MAIL_TITLE = "Damien : menu du jour";
   private static final Logger log = Logger.getLogger(CurrentMenuMailSender.class.getName());
-  private List<String> addressees = Arrays.asList("cyrilmontagnon@gmail.com");//, "audewoehl@gmail.com");
+  private List<String> addressees = Arrays.asList("cyrilmontagnon@gmail.com", "audewoehl@gmail.com",
+      "jamontagnon@gmail.com", "michelemontagnon@yahoo.fr");
 
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -52,10 +52,7 @@ public class CurrentMenuMailSender extends HttpServlet {
     PersistenceManager pm = PMF.get().getPersistenceManager();
     String query = "select from " + DayMenu.class.getName();
     List<DayMenu> dayMenus = (List<DayMenu>) pm.newQuery(query).execute();
-    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Paris"));
-    String currentDay =
-        cal.get(Calendar.YEAR) + "-" + padWithZeroIfNecessary(cal.get(Calendar.MONTH) + 1) + "-"
-            + padWithZeroIfNecessary(cal.get(Calendar.DAY_OF_MONTH));
+    String currentDay = DayUtil.getCurrentDayAsString();
 
     log.log(Level.INFO, "Trying to find a menu with day : " + currentDay);
 
@@ -124,15 +121,6 @@ public class CurrentMenuMailSender extends HttpServlet {
 
     public String getName() {
       return "JAF text/html dataSource to send e-mail only";
-    }
-  }
-
-  // TODO : pad with zero method??
-  private static String padWithZeroIfNecessary(int monthOrDay) {
-    if (monthOrDay < 10) {
-      return "0" + monthOrDay;
-    } else {
-      return String.valueOf(monthOrDay);
     }
   }
 
