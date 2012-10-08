@@ -38,7 +38,7 @@
     	} else {
 %>
 <tr>
-<td"><%= dayMenu.getDay()%></td>
+<td><%= dayMenu.getDay()%></td>
 <%
     	}
 %>
