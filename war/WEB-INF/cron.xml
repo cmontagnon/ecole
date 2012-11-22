@@ -6,4 +6,10 @@
     <schedule>every day 06:00</schedule>
     <timezone>Europe/Paris</timezone>
   </cron>
+  <cron>
+    <url>/dailyreport</url>
+    <description>Mail out a daily menu</description>
+    <schedule>every monday 16:30</schedule>
+    <timezone>Europe/Paris</timezone>
+  </cron>
 </cronentries>

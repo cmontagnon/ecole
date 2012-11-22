@@ -16,12 +16,13 @@
 
 <table id="table-3">
 	<thead>
-		<th><b>Jour</b></th>
-		<th><b>Entr&eacute;e</b></th>
-		<th><b>Repas</b></th>
-		<th><b>Accompagnement</b></th>
-		<th><b>Fromage/Yaourt</b></th>
-		<th><b>Dessert</b></th>
+		<th><b>Date</b></th>
+		<th><b>Arrondissement</b></th>
+		<th><b>Quartier</b></th>
+		<th><b>Prix</b></th>
+		<th><b>Superficie</b></th>
+		<th><b>Annonce</b></th>
+		<th><b>reference</b></th>
 	</thead>
 	<tbody>
 <%
